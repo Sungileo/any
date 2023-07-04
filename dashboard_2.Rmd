@@ -1,0 +1,179 @@
+---
+title: "천안시 아파트"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+---
+
+```{r, include = FALSE}
+library(flexdashboard)
+library(tidyverse)
+library(knitr)
+```
+
+```{python, include = FALSE}
+import pandas as pd
+import geopandas as gpd
+from folium import Marker,GeoJson,Choropleth,Circle
+import folium
+import warnings 
+warnings.filterwarnings('ignore')
+from geopy.geocoders import Nominatim
+```
+
+천안시 아파트의 분포
+======
+
+
+Column{data-width=1335}
+-----------
+### 위치
+```{python}
+apt_path = "https://raw.githubusercontent.com/Sungileo/trainsets_2/main/apartment_latlon.csv"
+
+apt_raw = pd.read_csv(apt_path)
+apt_latlon = apt_raw.iloc[:,2:5]
+
+apt_latlon_gdf = gpd.GeoDataFrame(apt_latlon, geometry=gpd.points_from_xy(apt_latlon['lon'], apt_latlon['lat']))
+```
+```{python, include = FALSE}
+m = folium.Map(location=[36.807438,127.144504], zoom_start=13)
+
+for idx, row in apt_latlon_gdf.iterrows():
+    Marker(location = [row['lat'], row['lon']],
+           popup=row["아파트"]).add_to(m)
+```
+
+```{python}
+m
+```
+
+
+Column{}
+-----------
+### 천안시 아파트의 건축년도 분포
+```{r, include = FALSE}
+library(plotly)
+
+data_path = "https://raw.githubusercontent.com/Sungileo/trainsets_2/main/%EC%B2%9C%EC%95%88%EC%8B%9C_%EC%95%84%ED%8C%8C%ED%8A%B8_%EB%A7%A4%EB%A7%A4_2018_2023.csv"
+
+data_raw = read.csv(data_path,row.names = 1)
+data_use = data_raw %>% select(c(5,6,8,12))
+
+data_dev <- data_use %>% 
+  group_by(아파트) %>% 
+  summarize(거래금액평균 = mean(거래금액), 
+            건축년도 = round(mean(건축년도)))
+
+```
+
+```{r}
+plot_ly(y = ~data_dev$건축년도, type = "box",name = "") %>% 
+  layout(yaxis = list(title = '건축년도 (년)'))
+```
+
+
+
+### 천안시 아파트의 거래금액 분포
+```{r}
+plot_ly(y = ~data_dev$거래금액평균, type = "box",name = "") %>% 
+  layout(yaxis = list(title = '거래금액 (만원)'))
+```
+
+
+천안시 학교의 분포
+======
+
+
+Column{data-width=1450}
+-----------
+### 천안시 초,중,고등학교 위치
+```{python}
+elm_school = pd.read_csv("https://raw.githubusercontent.com/Sungileo/trainsets_2/main/%EC%B4%88%EB%93%B1%ED%95%99%EA%B5%90%20%EC%9C%84%EA%B2%BD%EB%8F%84.csv")
+mid_school = pd.read_csv("https://raw.githubusercontent.com/Sungileo/trainsets_2/main/%EC%A4%91%ED%95%99%EA%B5%90_%EC%9C%84%EA%B2%BD%EB%8F%84.csv")
+hi_school = pd.read_csv("https://raw.githubusercontent.com/Sungileo/trainsets_2/main/%EA%B3%A0%EB%93%B1%ED%95%99%EA%B5%90_%EC%9C%84%EA%B2%BD%EB%8F%84.csv")
+
+elm_school = gpd.GeoDataFrame(elm_school, geometry=gpd.points_from_xy(elm_school['Longitude'], elm_school['Latitude']))
+mid_school = gpd.GeoDataFrame(mid_school, geometry=gpd.points_from_xy(mid_school['Longitude'], mid_school['Latitude']))
+hi_school = gpd.GeoDataFrame(hi_school, geometry=gpd.points_from_xy(hi_school['Longitude'], hi_school['Latitude']))
+
+elm_school.crs = 'EPSG:4326'
+mid_school.crs = 'EPSG:4326'
+hi_school.crs = 'EPSG:4326'
+
+elm_school = elm_school.to_crs('EPSG:3857')
+mid_school = mid_school.to_crs('EPSG:3857')
+hi_school = hi_school.to_crs('EPSG:3857')
+```
+
+```{python, include = FALSE}
+m_1 = folium.Map(location=[36.807438,127.144504], zoom_start=13)
+
+for idx, row in elm_school.iterrows():
+    Circle(location = [row['Latitude'], row['Longitude']],
+           radius=40,
+           tooltip=row["초등학교"],
+           color = "red").add_to(m_1)
+
+for idx, row in mid_school.iterrows():
+    Circle(location = [row['Latitude'], row['Longitude']],
+           radius=50,
+           tooltip=row["중학"],
+           color = "blue").add_to(m_1)
+    
+for idx, row in hi_school.iterrows():
+    Circle(location = [row['Latitude'], row['Longitude']],
+           radius=60,
+           tooltip=row["고등학교"],
+           color = "green").add_to(m_1)
+```
+
+```{python}
+m_1
+```
+
+Column{data-width=210}
+------
+```{r}
+elm_school = read.csv("https://raw.githubusercontent.com/Sungileo/trainsets_2/main/%EC%B4%88%EB%93%B1%ED%95%99%EA%B5%90%20%EC%9C%84%EA%B2%BD%EB%8F%84.csv")
+mid_school = read.csv("https://raw.githubusercontent.com/Sungileo/trainsets_2/main/%EC%A4%91%ED%95%99%EA%B5%90_%EC%9C%84%EA%B2%BD%EB%8F%84.csv")
+hi_school = read.csv("https://raw.githubusercontent.com/Sungileo/trainsets_2/main/%EA%B3%A0%EB%93%B1%ED%95%99%EA%B5%90_%EC%9C%84%EA%B2%BD%EB%8F%84.csv")
+```
+
+### 초등학교 목록
+```{r}
+kable(elm_school$초등학교)
+```
+
+### 초등학교
+```{r}
+valueBox(77,color = "red")
+```
+
+Column{data-width=210}
+--------
+
+### 중학교 목록
+```{r}
+kable(mid_school$중학)
+```
+
+### 중학교
+```{r}
+valueBox(31,color = "blue")
+```
+
+Column{data-width=210}
+--------
+
+### 고등학교 목록
+```{r}
+kable(hi_school$고등학교)
+```
+### 고등학교
+```{r}
+valueBox(21,color = "darkgreen")
+```
+
+
