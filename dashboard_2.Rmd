@@ -2,8 +2,15 @@
 title: "천안시 아파트"
 output: 
   flexdashboard::flex_dashboard:
-    orientation: columns
     vertical_layout: fill
+    orientation: rows
+    theme:
+      bg: "#FFFFFF"
+      fg: "#000000" 
+      primary: "#7fcdff"
+      base_font: 
+        google: Prompt
+        
 ---
 
 ```{r, include = FALSE}
@@ -20,15 +27,16 @@ import folium
 import warnings 
 warnings.filterwarnings('ignore')
 from geopy.geocoders import Nominatim
+
 ```
 
 천안시 아파트의 분포
 ======
 
 
-Column{data-width=1335}
+Row {.sidebar data-width=1050}
 -----------
-### 위치
+### 아파트 위치
 ```{python}
 apt_path = "https://raw.githubusercontent.com/Sungileo/trainsets_2/main/apartment_latlon.csv"
 
@@ -50,7 +58,7 @@ m
 ```
 
 
-Column{}
+Row {data-height=350}
 -----------
 ### 천안시 아파트의 건축년도 분포
 ```{r, include = FALSE}
@@ -74,7 +82,8 @@ plot_ly(y = ~data_dev$건축년도, type = "box",name = "") %>%
 ```
 
 
-
+Row {data-height=350}
+-----------
 ### 천안시 아파트의 거래금액 분포
 ```{r}
 plot_ly(y = ~data_dev$거래금액평균, type = "box",name = "") %>% 
@@ -86,9 +95,9 @@ plot_ly(y = ~data_dev$거래금액평균, type = "box",name = "") %>%
 ======
 
 
-Column{data-width=1450}
+Row {.sidebar data-width=1050}
 -----------
-### 천안시 초,중,고등학교 위치
+### 천안시 초, 중, 고등학교 위치
 ```{python}
 elm_school = pd.read_csv("https://raw.githubusercontent.com/Sungileo/trainsets_2/main/%EC%B4%88%EB%93%B1%ED%95%99%EA%B5%90%20%EC%9C%84%EA%B2%BD%EB%8F%84.csv")
 mid_school = pd.read_csv("https://raw.githubusercontent.com/Sungileo/trainsets_2/main/%EC%A4%91%ED%95%99%EA%B5%90_%EC%9C%84%EA%B2%BD%EB%8F%84.csv")
@@ -133,7 +142,7 @@ for idx, row in hi_school.iterrows():
 m_1
 ```
 
-Column{data-width=210}
+Row {.tabset data-height=350}
 ------
 ```{r}
 elm_school = read.csv("https://raw.githubusercontent.com/Sungileo/trainsets_2/main/%EC%B4%88%EB%93%B1%ED%95%99%EA%B5%90%20%EC%9C%84%EA%B2%BD%EB%8F%84.csv")
@@ -146,34 +155,34 @@ hi_school = read.csv("https://raw.githubusercontent.com/Sungileo/trainsets_2/mai
 kable(elm_school$초등학교)
 ```
 
-### 초등학교
-```{r}
-valueBox(77,color = "red")
-```
-
-Column{data-width=210}
---------
 
 ### 중학교 목록
 ```{r}
 kable(mid_school$중학)
 ```
 
+### 고등학교 목록
+```{r}
+kable(hi_school$고등학교)
+```
+
+Row {data-height-350}
+-------
+
+### 초등학교
+```{r}
+valueBox(77,color = "red")
+```
+
+
 ### 중학교
 ```{r}
 valueBox(31,color = "blue")
 ```
 
-Column{data-width=210}
---------
-
-### 고등학교 목록
-```{r}
-kable(hi_school$고등학교)
-```
 ### 고등학교
 ```{r}
 valueBox(21,color = "darkgreen")
 ```
 
-
+  
