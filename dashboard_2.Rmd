@@ -34,7 +34,7 @@ from geopy.geocoders import Nominatim
 ======
 
 
-Row {.sidebar data-width=1050}
+Row {.sidebar data-width=1410}
 -----------
 ### 아파트 위치
 ```{python}
@@ -95,7 +95,7 @@ plot_ly(y = ~data_dev$거래금액평균, type = "box",name = "") %>%
 ======
 
 
-Row {.sidebar data-width=1050}
+Row {.sidebar data-width=1410}
 -----------
 ### 천안시 초, 중, 고등학교 위치
 ```{python}
@@ -119,23 +119,27 @@ hi_school = hi_school.to_crs('EPSG:3857')
 ```{python, include = FALSE}
 m_1 = folium.Map(location=[36.807438,127.144504], zoom_start=13)
 
+folium.TileLayer('cartodbpositron').add_to(m_1)
+
+
 for idx, row in elm_school.iterrows():
     Circle(location = [row['Latitude'], row['Longitude']],
-           radius=40,
+           radius=50,
            tooltip=row["초등학교"],
            color = "red").add_to(m_1)
 
 for idx, row in mid_school.iterrows():
     Circle(location = [row['Latitude'], row['Longitude']],
-           radius=50,
+           radius=60,
            tooltip=row["중학"],
            color = "blue").add_to(m_1)
     
 for idx, row in hi_school.iterrows():
     Circle(location = [row['Latitude'], row['Longitude']],
-           radius=60,
+           radius=70,
            tooltip=row["고등학교"],
            color = "green").add_to(m_1)
+
 ```
 
 ```{python}
