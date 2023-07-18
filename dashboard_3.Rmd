@@ -259,4 +259,83 @@ valueBox(31,color = "blue")
 valueBox(21,color = "darkgreen")
 ```
 
-  
+
+
+동별 거래액
+======
+
+
+```{r, include = FALSE}
+library(sf)
+library(rgdal)
+library(ggplot2)
+library(dplyr)
+```
+
+```{r, include = FALSE}
+data_sp <- readOGR("/home/sungil/dataset/LSMD_ADM_SECT_UMD_44.shp",encoding = "euc-kr")
+data_sf <- st_as_sf(data_sp)
+
+data_cheonan <- data_sf[data_sf$COL_ADM_SE==44130,]
+
+library(tmap)
+tmap_mode("view")
+tmap_options(check.and.fix = TRUE)
+```
+
+```{r, include = FALSE}
+data_path = "https://raw.githubusercontent.com/Sungileo/trainsets_2/main/%EC%B2%9C%EC%95%88%EC%8B%9C_%EC%95%84%ED%8C%8C%ED%8A%B8_%EB%A7%A4%EB%A7%A4_2018_2023.csv"
+
+data_raw = read.csv(data_path,row.names = 1)
+data_use = data_raw %>% select(c(5,6,8,12)) %>% mutate(평당거래액 = 거래금액/(전용면적/3.3058))
+
+data_dev <- data_use %>% 
+  group_by(아파트) %>% 
+  summarize(평균평당거래액 = round(mean(평당거래액)),
+            최고평당거래액 = round(max(평당거래액)),
+            최저평당거래액 = round(min(평당거래액)))
+
+data_2 <- read.csv("https://raw.githubusercontent.com/Sungileo/trainsets_2/main/apartment_latlon.csv",row.names = 1)
+
+data_join <- data_dev %>% left_join(data_2,by = "아파트")
+data_join <- data_join %>% st_as_sf(coords = c("lon","lat"))
+st_crs(data_join) <- 4737
+
+data_cheonan_2 <- data_cheonan["EMD_NM"]
+data_cheonan_2 <- st_transform(data_cheonan_2,4737)
+
+
+data_cheonan_2 <- st_make_valid(data_cheonan_2)
+#data_cheonan_2 %>% plot()
+
+data_join %>%  st_crs()
+geom_joined <- data_cheonan_2 %>% st_join(data_join,join = st_intersects)
+geom_joined[is.na(geom_joined)] <- 0
+
+data_avg <- geom_joined %>% 
+  group_by(EMD_NM) %>% summarize(평균평당거래액 = round(mean(평균평당거래액)),
+            최고평당거래액 = round(max(최고평당거래액)),
+            최저평당거래액 = round(min(최저평당거래액)),
+            geometry = first(geometry))
+
+data_avg$평균평당거래액[data_avg$평균평당거래액 == 0] <- NA
+
+```
+
+```{r,include=FALSE}
+tm_1 <- tm_shape(data_avg)+
+  tm_polygons("평균평당거래액",
+              popup.vars = c("평균평당거래액 (만원)" = "평균평당거래액","최고평당거래액 (만원)" = "최고평당거래액","최저평당거래액 (만원)" = "최저평당거래액"),
+              n=7,
+              colorNA = "grey90",
+              alpha = 0.7)
+```
+
+Row {}
+-----------
+### 동별 거래액
+
+```{python}
+tm_1
+```
+
